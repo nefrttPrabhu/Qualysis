@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User{
+  id String @id @unique @default(cuid())
+  first_name String
+  last_name String
+  email String
+  profile_image_url String?
+  role userRole
+  status userStatus
+  linkedin_url String?
+  resume_url String?
+  portfolio_url String?
+  github_url String?
+  leetcode_url String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  company Company[]
+  employee Employee[]
+  applicant Applicant[]
+}
+
+enum userRole {
+  CANDIDATE
+  EMPLOYEE
+  COMPANY
+}
+
+enum userStatus {
+  UNEMPLOYED
+  EMPLOYED
+}
+
+model Company {
+  id String @id @unique @default(cuid())
+  user_id String
+  name String
+  description String
+  location String
+  company_email String
+  website_url String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user User @relation(fields: [user_id],references: [id],onDelete: Cascade)
+  employee Employee[]
+  jobs Jobs[]
+}
+
+model Employee {
+  id String @id @unique @default(cuid())
+  user_id String @unique
+  company_id String
+  is_approved Boolean @default(false)
+  is_invalid Boolean @default(false)
+  designation String
+  years_of_experience Int
+  linkedin_url String
+  github_url String
+  user User @relation(fields: [user_id],references: [id],onDelete: Cascade) 
+  company Company @relation(fields: [company_id],references: [id],onDelete: Cascade)
+}
+
+enum jobMode {
+  REMOTE
+  HYBRID
+  ONSITE
+}
+
+enum skillsRequired {
+  CPP
+  JAVA
+  PYTHON
+  JAVASCRIPT
+  TYPESCRIPT
+  HTML
+  CSS
+  DOCKER
+  KUBERNETES
+  OOPS
+  DSA
+  COMMUNICATION
+  KOTLIN
+  SWIFT
+  RUBY
+  RUST
+  REACT
+  NEXT
+  VUE
+  FLASK
+  DJANGO
+  ML
+}
+model Jobs {
+  id String @id @unique @default(cuid())
+  company_id String
+  role String
+  job_description String
+  mode jobMode
+  location String
+  exp_required Int
+  openings Int
+  skills skillsRequired[]
+  is_closed Boolean @default(false)
+  registration_deadline DateTime 
+  applicants_count Int @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  company Company @relation(fields: [company_id],references: [id]) 
+  applicants Applicant[]
+}
+
+model Applicant {
+  id String @id @unique @default(cuid())
+  user_id String
+  job_id String 
+  resume_url String
+  cover_letter String
+  leetcode_url String?
+  linkedin_url String?
+  github_url String?
+  portfolio_url String?
+  is_shortlisted Boolean @default(false)
+  is_selected Boolean @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user User @relation(fields: [user_id],references: [id],onDelete: Cascade)
+  job Jobs @relation(fields: [job_id],references: [id],onDelete: Cascade)
+}
